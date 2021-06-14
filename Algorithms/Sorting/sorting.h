@@ -1,10 +1,11 @@
+/**
+ * Copyright by Dmitriy-Kozyrev on 14.06.2021
+ */
+
 #ifndef SORTING_H
 #define SORTING_H
 
 #include "stdexcept"
-#include <iostream>
-
-using namespace std;
 
 template<class T>
 class Sorting {
@@ -54,33 +55,8 @@ class Sorting {
         static T* mergeSort(T* arr, int size) {
             verifyData(arr, size);
         
-            if (size > 1) {
-                mergeSort(arr, size / 2); 
-                mergeSort(arr+(size / 2), size - (size / 2));
+            _mergeSort(arr, size);
 
-                T* buff = new T[size];
-
-                int index = 0;
-                int i = 0, j = size / 2;
-                for (i, j; i < size / 2 && j < size;) {
-                    if (arr[i] >= arr[j]) 
-                        buff[index++] = arr[j++];
-                    else if (arr[i] < arr[j]) 
-                        buff[index++] = arr[i++];
-                }
-
-                if (i == size / 2 && j != size )
-                    for (j; j < size; ++j) 
-                        buff[index++] = arr[j];
-                else if (j == size && i != size / 2)
-                    for (i; i < size / 2; ++i) 
-                        buff[index++] = arr[i];  
-
-                for (int i = 0; i < size; ++i) {
-                    arr[i] = buff[i];
-                } 
-                delete[] buff;
-            }
             return arr;
         }          
 
@@ -103,19 +79,7 @@ class Sorting {
         static T* quickSort(T* arr, int size) {
             verifyData(arr, size);
 
-            if (size > 1) {
-                std::swap(arr[size / 2], arr[size-1]);
-                int globalIndex = 0;
-                while(globalIndex < size - 1) {
-                    for (int i = globalIndex; i < size - 1; ++i) {
-                        if (arr[i] <= arr[size-1])  
-                            std::swap(arr[globalIndex++], arr[i]);
-                    }
-                    std::swap(arr[globalIndex], arr[size-1]);
-                    quickSort(arr, globalIndex);
-                    quickSort(arr + globalIndex, size - globalIndex);
-                }
-            }
+            _quickSort(arr, size);
             
             return arr;
         }
@@ -129,13 +93,6 @@ class Sorting {
                 sortSubTree(&arr[0], 0, globalIndex + 1, 1, false);
                 std::swap(arr[0], arr[globalIndex--]);
             }
-            cout << endl;
-            return arr;
-        }
-
-        static T* tournamentSort(T* arr, int size) {
-            verifyData(arr, size);
-
             return arr;
         }
 
@@ -148,23 +105,84 @@ class Sorting {
                 throw std::invalid_argument("Array size must not be less than zero!");
         }
 
+        static void _mergeSort(T* arr, int size) {
+            if (size > 1) {
+                /* Split into two parts */
+                mergeSort(arr, size / 2);
+                mergeSort(arr+(size / 2), size - (size / 2));
+
+                T* buff = new T[size];
+
+                int index = 0;
+                int i = 0, j = size / 2;
+
+                /* Merging */
+                for (i, j; i < size / 2 && j < size;) {
+                    if (arr[i] >= arr[j]) 
+                        buff[index++] = arr[j++];
+                    else if (arr[i] < arr[j]) 
+                        buff[index++] = arr[i++];
+                }
+
+                /* if the first half has already been recorded and the second half is not yet */
+                if (i == size / 2 && j != size )
+                    for (j; j < size; ++j) 
+                        buff[index++] = arr[j];
+                /* else if the second half has already been recorded and the first half is not yet */
+                else if (j == size && i != size / 2)
+                    for (i; i < size / 2; ++i) 
+                        buff[index++] = arr[i];  
+
+                for (int i = 0; i < size; ++i) {
+                    arr[i] = buff[i];
+                }
+
+                delete[] buff;
+            }
+        }
+
+        static void _quickSort(T* arr, int size) {
+            if (size > 1) {
+                std::swap(arr[size / 2], arr[size-1]);
+                int globalIndex = 0;
+                //while(globalIndex < size - 1) {
+                //    std:: cout << globalIndex << "! ";
+                for (int i = globalIndex; i < size - 1; ++i) {
+                        if (arr[i] <= arr[size-1])  
+                            std::swap(arr[globalIndex++], arr[i]);
+                }
+                std::swap(arr[globalIndex], arr[size-1]);
+                quickSort(arr, globalIndex);
+                quickSort(arr + globalIndex, size - globalIndex);
+                //}
+            }
+        }
+
+        /*
+         * parent - pointer to tree root 
+         * index - index of parent 
+         * treeSize - size of full tree
+         * offset - offset to simulate a tree 
+         * isLeftSubTreeForParent - flag for specifying the offset for the left and right subtree */
         static void sortSubTree(T* parent, int index, int treeSize, int offset, bool isLeftSubTreeForParent) {
             
-            T* left = nullptr;T* rigth = nullptr;
+            T *left = nullptr, *rigth = nullptr;
 
             int tempOffset = isLeftSubTreeForParent? offset * 2 : (offset * 2) - 1 ;
 
+            /* if the root of the subtree has a right subtree */
             if (index+tempOffset < treeSize) {
                 sortSubTree(parent+tempOffset, index + tempOffset, treeSize, tempOffset, true);
                 left = parent + tempOffset;
+                /* if the root of the subtree has a left subtree */
                 if (index+tempOffset+1 < treeSize) {
                     sortSubTree(parent + tempOffset + 1, index + tempOffset + 1, treeSize, tempOffset + 1, false);
                     rigth = parent + tempOffset + 1;
                 }
-                    
             }
             else return;
 
+            /* The parent root must be larger than its descendants (if sorting in ascending order) */
             T* max = *parent > *left ? parent : left;
             if (rigth != nullptr)
                 max = *max > *rigth ? max : rigth;
