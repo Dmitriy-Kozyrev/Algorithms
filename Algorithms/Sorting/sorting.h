@@ -145,8 +145,6 @@ class Sorting {
             if (size > 1) {
                 std::swap(arr[size / 2], arr[size-1]);
                 int globalIndex = 0;
-                //while(globalIndex < size - 1) {
-                //    std:: cout << globalIndex << "! ";
                 for (int i = globalIndex; i < size - 1; ++i) {
                         if (arr[i] <= arr[size-1])  
                             std::swap(arr[globalIndex++], arr[i]);
@@ -154,7 +152,6 @@ class Sorting {
                 std::swap(arr[globalIndex], arr[size-1]);
                 quickSort(arr, globalIndex);
                 quickSort(arr + globalIndex, size - globalIndex);
-                //}
             }
         }
 
